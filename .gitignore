@@ -3,6 +3,7 @@ sms
 
 # Ignore the database file (others should start with a fresh one)
 *.db
+*.csv
 
 # Ignore Mac system files
 .DS_Store
