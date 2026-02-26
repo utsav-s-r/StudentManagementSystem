@@ -1,0 +1,8 @@
+# Ignore the compiled executable
+sms
+
+# Ignore the database file (others should start with a fresh one)
+*.db
+
+# Ignore Mac system files
+.DS_Store
