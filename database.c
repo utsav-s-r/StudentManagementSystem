@@ -101,8 +101,8 @@ void init_database(sqlite3 *db) {
 void add_department(sqlite3 *db) {
     char name[50], bld[50];
     double budget;
-    printf("Dept Name: "); scanf("%s", name);
-    printf("Building: "); scanf("%s", bld);
+    printf("Dept Name: "); scanf(" %49[^\n]", name);
+    printf("Building: "); scanf(" %49[^\n]", bld);
     printf("Budget: "); scanf("%lf", &budget);
 
     sqlite3_stmt *stmt;
@@ -120,8 +120,8 @@ void add_student(sqlite3 *db) {
     int id, credits;
     char name[50], dept[50];
     printf("ID: "); scanf("%d", &id);
-    printf("Name: "); scanf("%s", name);
-    printf("Dept Name: "); scanf("%s", dept);
+    printf("Name: "); scanf(" %49[^\n]", name);
+    printf("Dept Name: "); scanf(" %49[^\n]", dept);
     printf("Total Credits: "); scanf("%d", &credits);
 
     sqlite3_stmt *stmt;
@@ -144,8 +144,8 @@ void add_instructor(sqlite3 *db) {
     double salary;
     printf("\n--- Add Instructor ---\n");
     printf("ID: "); scanf("%d", &id);
-    printf("Name: "); scanf("%s", name);
-    printf("Dept Name: "); scanf("%s", dept);
+    printf("Name: "); scanf(" %49[^\n]", name);
+    printf("Dept Name: "); scanf(" %49[^\n]", dept);
     printf("Salary: "); scanf("%lf", &salary);
 
     sqlite3_stmt *stmt;
@@ -165,8 +165,8 @@ void add_course(sqlite3 *db) {
     int credits;
     printf("\n--- Add Course ---\n");
     printf("Course ID (e.g., CS101): "); scanf("%s", id);
-    printf("Title: "); scanf("%s", title);
-    printf("Dept Name: "); scanf("%s", dept);
+    printf("Title: "); scanf(" %49[^\n]", title);
+    printf("Dept Name: "); scanf(" %49[^\n]", dept);
     printf("Credits: "); scanf("%d", &credits);
 
     sqlite3_stmt *stmt;
@@ -305,4 +305,148 @@ void search_instructors_by_salary(sqlite3 *db) {
                sqlite3_column_double(res, 2));
     }
     sqlite3_finalize(res);
+}
+
+void list_departments(sqlite3 *db) {
+    sqlite3_stmt *res;
+    char *sql = "SELECT dept_name, building, budget FROM department;";
+    
+    if (sqlite3_prepare_v2(db, sql, -1, &res, 0) == SQLITE_OK) {
+        printf("\n--- 🏢 Department List ---\n");
+        printf("%-20s | %-15s | %-10s\n", "Dept Name", "Building", "Budget");
+        printf("--------------------------------------------------\n");
+        while (sqlite3_step(res) == SQLITE_ROW) {
+            printf("%-20s | %-15s | %-10.2f\n", 
+                   sqlite3_column_text(res, 0),
+                   sqlite3_column_text(res, 1),
+                   sqlite3_column_double(res, 2));
+        }
+    }
+    sqlite3_finalize(res);
+}
+
+void list_students(sqlite3 *db) {
+    sqlite3_stmt *res;
+    char *sql = "SELECT ID, name, dept_name, tot_cred FROM student;";
+    
+    if (sqlite3_prepare_v2(db, sql, -1, &res, 0) == SQLITE_OK) {
+        printf("\n--- 🎓 Student List ---\n");
+        printf("%-5s | %-20s | %-15s | %-5s\n", "ID", "Name", "Dept", "Cred");
+        printf("----------------------------------------------------------\n");
+        while (sqlite3_step(res) == SQLITE_ROW) {
+            printf("%-5d | %-20s | %-15s | %-5d\n", 
+                   sqlite3_column_int(res, 0),
+                   sqlite3_column_text(res, 1),
+                   sqlite3_column_text(res, 2),
+                   sqlite3_column_int(res, 3));
+        }
+    }
+    sqlite3_finalize(res);
+}
+
+void list_courses(sqlite3 *db) {
+    sqlite3_stmt *res;
+    char *sql = "SELECT course_id, title, dept_name, credits FROM course;";
+    
+    if (sqlite3_prepare_v2(db, sql, -1, &res, 0) == SQLITE_OK) {
+        printf("\n--- 📚 Course List ---\n");
+        printf("%-10s | %-25s | %-15s | %-5s\n", "ID", "Title", "Dept", "Cred");
+        printf("--------------------------------------------------------------\n");
+        while (sqlite3_step(res) == SQLITE_ROW) {
+            printf("%-10s | %-25s | %-15s | %-5d\n", 
+                   sqlite3_column_text(res, 0),
+                   sqlite3_column_text(res, 1),
+                   sqlite3_column_text(res, 2),
+                   sqlite3_column_int(res, 3));
+        }
+    }
+    sqlite3_finalize(res);
+}
+
+void list_instructors(sqlite3 *db) {
+    sqlite3_stmt *res;
+    char *sql = "SELECT ID, name, dept_name, salary FROM instructor;";
+    
+    if (sqlite3_prepare_v2(db, sql, -1, &res, 0) == SQLITE_OK) {
+        printf("\n--- 👨‍🏫 Instructor List ---\n");
+        printf("%-5s | %-20s | %-15s | %-10s\n", "ID", "Name", "Dept", "Salary");
+        printf("------------------------------------------------------------\n");
+        while (sqlite3_step(res) == SQLITE_ROW) {
+            printf("%-5d | %-20s | %-15s | %-10.2f\n", 
+                   sqlite3_column_int(res, 0),
+                   sqlite3_column_text(res, 1),
+                   sqlite3_column_text(res, 2),
+                   sqlite3_column_double(res, 3));
+        }
+    }
+    sqlite3_finalize(res);
+}
+
+// --- Update & Delete Functions ---
+
+void update_student_credits(sqlite3 *db) {
+    int id, new_credits;
+    printf("\nEnter Student ID to update: ");
+    scanf("%d", &id);
+    printf("Enter New Total Credits: ");
+    scanf("%d", &new_credits);
+
+    sqlite3_stmt *stmt;
+    const char *sql = "UPDATE student SET tot_cred = ? WHERE ID = ?;";
+    
+    if (sqlite3_prepare_v2(db, sql, -1, &stmt, 0) == SQLITE_OK) {
+        sqlite3_bind_int(stmt, 1, new_credits);
+        sqlite3_bind_int(stmt, 2, id);
+        
+        if (sqlite3_step(stmt) == SQLITE_DONE) {
+            if (sqlite3_changes(db) > 0) printf("✅ Student credits updated!\n");
+            else printf("⚠️ No student found with ID %d.\n", id);
+        } else {
+            printf("❌ Error updating record.\n");
+        }
+    }
+    sqlite3_finalize(stmt);
+}
+
+void update_instructor_salary(sqlite3 *db) {
+    int id;
+    double new_salary;
+    printf("\nEnter Instructor ID to update: ");
+    scanf("%d", &id);
+    printf("Enter New Salary: ");
+    scanf("%lf", &new_salary);
+
+    sqlite3_stmt *stmt;
+    const char *sql = "UPDATE instructor SET salary = ? WHERE ID = ?;";
+    
+    sqlite3_prepare_v2(db, sql, -1, &stmt, 0);
+    sqlite3_bind_double(stmt, 1, new_salary);
+    sqlite3_bind_int(stmt, 2, id);
+
+    if (sqlite3_step(stmt) == SQLITE_DONE && sqlite3_changes(db) > 0) 
+        printf("✅ Salary updated successfully!\n");
+    else 
+        printf("❌ Update failed. Check ID or Salary constraint (>= 30000).\n");
+        
+    sqlite3_finalize(stmt);
+}
+
+void delete_student(sqlite3 *db) {
+    int id;
+    printf("\n⚠️ CAUTION: This will remove the student and their enrollment records.\n");
+    printf("Enter Student ID to delete: ");
+    scanf("%d", &id);
+
+    sqlite3_stmt *stmt;
+    // Note: If you have foreign keys with ON DELETE CASCADE, 'takes' records will vanish too.
+    const char *sql = "DELETE FROM student WHERE ID = ?;";
+
+    if (sqlite3_prepare_v2(db, sql, -1, &stmt, 0) == SQLITE_OK) {
+        sqlite3_bind_int(stmt, 1, id);
+        if (sqlite3_step(stmt) == SQLITE_DONE && sqlite3_changes(db) > 0)
+            printf("🗑️ Student record deleted.\n");
+        else
+            printf("⚠️ Student ID not found.\n");
+    }
+    sqlite3_finalize(stmt);
 }

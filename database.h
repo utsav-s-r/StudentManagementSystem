@@ -13,13 +13,18 @@ void list_departments(sqlite3 *db);
 // Student Functions (Updated for the new schema)
 void add_student(sqlite3 *db);
 void list_students(sqlite3 *db);
+void delete_student(sqlite3 *db);
 
 // Instructor Functions
 void add_instructor(sqlite3 *db);
+void list_instructors(sqlite3 *db);
+void update_instructor_salary(sqlite3 *db);
 
 // Course & Enrollment
 void add_course(sqlite3 *db);
 void enroll_student(sqlite3 *db); // This interacts with the 'takes' table
+void list_courses(sqlite3 *db);
+void update_student_credits(sqlite3 *db);
 
 void view_student_transcript(sqlite3 *db);
 
