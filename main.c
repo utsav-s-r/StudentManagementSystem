@@ -1,53 +1,37 @@
 #include <stdio.h>
-#include <stdlib.h>
-#include "database.h" // This links your main file to your functions
+#include "database.h"
 
 int main() {
     sqlite3 *db;
-    int rc = sqlite3_open("students.db", &db);
-
-    if (rc != SQLITE_OK) {
-        fprintf(stderr, "Cannot open database: %s\n", sqlite3_errmsg(db));
-        return 1;
-    }
-
-    // Ensure the table exists before we start
+    if (sqlite3_open("university.db", &db) != SQLITE_OK) return 1;
     init_database(db);
 
     int choice;
     while (1) {
-        printf("\n--- 🎓 Student Management System ---\n");
-        printf("1. Add New Student\n");
-        printf("2. View All Students\n");
-        printf("3. Delete a Student\n");
-        printf("4. Update Student Grade\n");
-        printf("5. Search Student by Name\n");
-        printf("6. View Class Statistics\n");
-        printf("7. Export to CSV (Excel)\n");
+        printf("\n--- 🏛️ University Management System ---\n");
+        printf("1. Departments (Add/List)\n");
+        printf("2. Students (Add/List)\n");
+        printf("3. Instructors (Add/List)\n");
+        printf("4. Courses (Add/List)\n");
+        printf("5. Enrollment (Enroll Student in Course)\n");
+        printf("6. View Transcript\n");
+        printf("7. Search Students by Dept\n");
+        printf("8. Search Instructors by Salary\n");
         printf("0. Exit\n");
-        printf("Select an option: ");
-        
-        // Safety: handle non-numeric input
-        if (scanf("%d", &choice) != 1) {
-            printf("Invalid input. Please enter a number.\n");
-            while (getchar() != '\n'); // clear buffer
-            continue;
-        }
+        printf("Selection: ");
+        scanf("%d", &choice);
 
         switch (choice) {
-            case 1: add_student(db); break;
-            case 2: list_students(db); break;
-            case 3: delete_student(db); break;
-            case 4: update_student(db); break;
-            case 5: search_student(db); break;
-            case 6: view_statistics(db); break;
-            case 7: export_to_csv(db); break;
-            case 0: 
-                sqlite3_close(db);
-                printf("Goodbye!\n");
-                return 0;
-            default: printf("Option not found. Try again.\n");
+            case 1: add_department(db); break;
+            case 2: add_student(db); break;
+            case 3: add_instructor(db); break;
+            case 4: add_course(db); break;
+            case 5: enroll_student(db); break;
+            case 6: view_student_transcript(db); break;
+            case 7: search_students_by_dept(db); break;
+            case 8: search_instructors_by_salary(db); break;
+            case 0: sqlite3_close(db); return 0;
+            default: printf("Invalid choice.\n");
         }
     }
-    return 0;
 }
